@@ -5,6 +5,7 @@ import com.willfp.eco.core.gui.slot.functional.SlotModifier;
 import com.willfp.eco.core.gui.slot.functional.SlotUpdater;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -151,6 +152,14 @@ public interface SlotBuilder {
      * @return The builder.
      */
     SlotBuilder setCaptive(boolean fromEmpty);
+
+    /**
+     * Set captive filter (allowed items).
+     *
+     * @param filter The filter.
+     * @return The builder.
+     */
+    SlotBuilder setCaptiveFilter(@NotNull Predicate<ItemStack> filter);
 
     /**
      * Build the slot.

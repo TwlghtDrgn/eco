@@ -29,6 +29,16 @@ public interface Slot {
     boolean isCaptive();
 
     /**
+     * Get if the slot can captivate an item.
+     *
+     * @param itemStack The item.
+     * @return If the item can be held.
+     */
+    default boolean canCaptivateItem(@NotNull final ItemStack itemStack) {
+        return true;
+    }
+
+    /**
      * If the slot is not captive for a player.
      *
      * @param player The player.

@@ -8,6 +8,7 @@ import com.willfp.eco.core.gui.slot.functional.SlotProvider
 import com.willfp.eco.core.gui.slot.functional.SlotUpdater
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.ItemStack
 import java.util.function.Predicate
 
 internal object NoOpSlot : SlotHandler {
@@ -34,6 +35,7 @@ class EcoSlotBuilder(private val provider: SlotProvider) : SlotBuilder {
     private var onMiddleClick: SlotHandler = NoOpSlot
 
     private var notCaptiveFor: (Player) -> Boolean = { false }
+    private var captiveFilter: (ItemStack) -> Boolean = { true }
 
     override fun onLeftClick(action: SlotHandler): SlotBuilder {
         onLeftClick = action
@@ -71,6 +73,11 @@ class EcoSlotBuilder(private val provider: SlotProvider) : SlotBuilder {
         return this
     }
 
+    override fun setCaptiveFilter(filter: Predicate<ItemStack>): SlotBuilder {
+        captiveFilter = { filter.test(it) }
+        return this
+    }
+
     override fun setUpdater(updater: SlotUpdater): SlotBuilder {
         this.updater = updater
         return this
@@ -81,7 +88,8 @@ class EcoSlotBuilder(private val provider: SlotProvider) : SlotBuilder {
             EcoCaptiveSlot(
                 provider,
                 captiveFromEmpty,
-                notCaptiveFor
+                notCaptiveFor,
+                captiveFilter
             )
         } else {
             EcoSlot(

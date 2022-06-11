@@ -36,6 +36,10 @@ fun SlotBuilder.onMiddleClick(action: (InventoryClickEvent, Slot, Menu) -> Unit)
 fun SlotBuilder.notCaptiveFor(test: (Player) -> Boolean): SlotBuilder =
     this.notCaptiveFor { test(it) }
 
+/** @see SlotBuilder.setCaptiveFilter */
+fun SlotBuilder.setCaptiveFilter(test: (ItemStack) -> Boolean): SlotBuilder =
+    this.setCaptiveFilter { test(it) }
+
 /**
  * @see SlotBuilder.setModifier
  * @deprecated Use SlotUpdater instead.
