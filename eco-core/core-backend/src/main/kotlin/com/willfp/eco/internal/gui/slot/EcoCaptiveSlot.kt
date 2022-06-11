@@ -2,6 +2,7 @@ package com.willfp.eco.internal.gui.slot
 
 import com.willfp.eco.core.gui.slot.functional.SlotHandler
 import com.willfp.eco.core.gui.slot.functional.SlotProvider
+import com.willfp.eco.core.recipe.parts.EmptyTestableItem
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
@@ -31,22 +32,21 @@ class EcoCaptiveSlot(
         return notCaptiveFor(player)
     }
 
-    override fun canCaptivateItem(itemStack: ItemStack): Boolean {
+    override fun canCaptivateItem(itemStack: ItemStack?): Boolean {
+        if (itemStack == null || EmptyTestableItem().matches(itemStack)) {
+            return true
+        }
+
         return captiveFilter(itemStack)
     }
 }
 
 private fun captiveWithTest(test: (Player) -> Boolean): SlotHandler {
     return SlotHandler { event, slot, _ ->
-        val item = event.currentItem
-        event.isCancelled = false
-
-        if (!test(event.whoClicked as Player)) {
+        if (test(event.whoClicked as Player)) {
             event.isCancelled = true
-        }
-
-        if (item != null && !slot.canCaptivateItem(item)) {
-            event.isCancelled = true
+        } else {
+            event.isCancelled = !slot.canCaptivateItem(event.cursor)
         }
     }
 }
