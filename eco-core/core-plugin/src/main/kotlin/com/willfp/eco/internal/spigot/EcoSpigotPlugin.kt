@@ -84,6 +84,7 @@ import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefCombatLogX
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefCrashClaim
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefDeluxeCombat
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefFactionsUUID
+import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefGriefDefender
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefGriefPrevention
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefIridiumSkyblock
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefKingdoms
