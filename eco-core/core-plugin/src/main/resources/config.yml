@@ -6,8 +6,8 @@
 
 # How player/server data is saved:
 # yaml - Stored in data.yml: Good option for single-node servers (i.e. no BungeeCord/Velocity)
-# mongo - (Recommended) If you're running on a network (Bungee/Velocity), you should use MongoDB if you can.
-# mysql - (Not Recommended) The basic choice for Bungee/Velocity networks, less flexible and worse performance than MongoDB. Only use it if you can't use MongoDB.
+# mongo - If you're running on a network (Bungee/Velocity), you should use MongoDB if you can.
+# mysql - The alternative to MongoDB. Because of how eco data works, MongoDB is the best option; but use this if you can't.
 data-handler: yaml
 
 # If data should be migrated automatically when changing data handler.
@@ -24,16 +24,11 @@ mysql:
   threads: 2
   # The maximum number of MySQL connections.
   connections: 10
-  # If read operations should be run in the thread pool. Runs on main thread by default.
-  async-reads: false
   host: localhost
   port: 3306
   database: database
   user: username
   password: passy
-
-  # Ignore this option, it does nothing.
-  enabled: false # Ignore this - only for backwards compatibility
 
 # Options to manage the conflict finder
 conflicts:
@@ -80,3 +75,8 @@ displayed-recipes: true
 
 # Save health on leave and set it back on join - works around attribute modifiers.
 health-fixer: false
+
+# If eco plugins should not check for updates; only enable this if you know what you're doing
+# as there can be urgent hotfixes that you are then not notified about. If you're confident
+# that you can manage updates on your own, turn this on.
+no-update-checker: false

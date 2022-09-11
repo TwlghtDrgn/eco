@@ -84,6 +84,7 @@ import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefCombatLogX
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefCombatLogXV11
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefCrashClaim
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefDeluxeCombat
+import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefFabledSkyBlock
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefFactionsUUID
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefGriefDefender
 import com.willfp.eco.internal.spigot.integrations.antigrief.AntigriefGriefPrevention
@@ -184,7 +185,7 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
         val tpsProxy = getProxy(TPSProxy::class.java)
         ServerUtils.initialize { tpsProxy.getTPS() }
 
-        NumberUtils.initCrunch { expression, player, context -> evaluateExpression(expression, player, context) }
+        NumberUtils.initCrunch(::evaluateExpression)
 
         MenuUtils.initialize { it.openInventory.topInventory.getMenu() }
 
@@ -245,6 +246,11 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
     override fun handleReload() {
         CollatedRunnable(this)
         DropManager.update(this)
+
+        this.scheduler.runLater(3) {
+            (Eco.getHandler().profileHandler as EcoProfileHandler).migrateIfNeeded()
+        }
+
         ProfileSaver(this, Eco.getHandler().profileHandler)
         this.scheduler.runTimer(
             { clearFrames() },
@@ -265,6 +271,7 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
             IntegrationLoader("IridiumSkyblock") { AntigriefManager.register(AntigriefIridiumSkyblock()) },
             IntegrationLoader("DeluxeCombat") { AntigriefManager.register(AntigriefDeluxeCombat()) },
             IntegrationLoader("SuperiorSkyblock2") { AntigriefManager.register(AntigriefSuperiorSkyblock2()) },
+            IntegrationLoader("FabledSkyBlock") { AntigriefManager.register(AntigriefFabledSkyBlock()) },
             IntegrationLoader("BentoBox") { AntigriefManager.register(AntigriefBentoBox()) },
             IntegrationLoader("WorldGuard") { AntigriefManager.register(AntigriefWorldGuard()) },
             IntegrationLoader("GriefPrevention") { AntigriefManager.register(AntigriefGriefPrevention()) },
@@ -365,7 +372,8 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
             ArmorChangeEventListeners(this),
             DataListener(this),
             PlayerBlockListener(this),
-            PlayerHealthFixer(this)
+            PlayerHealthFixer(this),
+            ServerLocking
         )
 
         if (Prerequisite.HAS_PAPER.isMet) {
