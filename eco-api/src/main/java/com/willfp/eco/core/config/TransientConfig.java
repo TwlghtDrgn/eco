@@ -20,13 +20,16 @@ import java.util.Map;
  * Config that exists purely in the code, not linked to any file.
  * <p>
  * Use for inline configs to move data around or to add subsections to other configs.
+ *
+ * @deprecated Poorly named class, makes the config system seem needlessly complicated.
  */
+@Deprecated(since = "6.44.0", forRemoval = true)
 public class TransientConfig extends ConfigWrapper<Config> {
     /**
      * @param config The ConfigurationSection handle.
      */
     public TransientConfig(@NotNull final ConfigurationSection config) {
-        super(Eco.getHandler().getConfigFactory().createConfig(config));
+        super(Eco.get().wrapConfigurationSection(config));
     }
 
     /**
@@ -42,7 +45,7 @@ public class TransientConfig extends ConfigWrapper<Config> {
      * @param stream The InputStream.
      */
     public TransientConfig(@Nullable final InputStream stream) {
-        super(stream != null ? Eco.getHandler().getConfigFactory().createConfig(YamlConfiguration.loadConfiguration(
+        super(stream != null ? Eco.get().wrapConfigurationSection(YamlConfiguration.loadConfiguration(
                 new InputStreamReader(stream)
         )) : new TransientConfig());
     }
@@ -62,7 +65,7 @@ public class TransientConfig extends ConfigWrapper<Config> {
      */
     public TransientConfig(@Nullable final File file,
                            @NotNull final ConfigType type) {
-        super(file != null ? Eco.getHandler().getConfigFactory().createConfig(readFile(file), type)
+        super(file != null ? Eco.get().createConfig(readFile(file), type)
                 : new TransientConfig());
     }
 
@@ -72,7 +75,7 @@ public class TransientConfig extends ConfigWrapper<Config> {
      * @param values The values.
      */
     public TransientConfig(@NotNull final Map<String, Object> values) {
-        super(Eco.getHandler().getConfigFactory().createConfig(values, ConfigType.YAML));
+        super(Eco.get().createConfig(values, ConfigType.YAML));
     }
 
     /**
@@ -83,7 +86,7 @@ public class TransientConfig extends ConfigWrapper<Config> {
      */
     public TransientConfig(@NotNull final Map<String, Object> values,
                            @NotNull final ConfigType type) {
-        super(Eco.getHandler().getConfigFactory().createConfig(values, type));
+        super(Eco.get().createConfig(values, type));
     }
 
     /**
@@ -99,7 +102,7 @@ public class TransientConfig extends ConfigWrapper<Config> {
      */
     public TransientConfig(@NotNull final String contents,
                            @NotNull final ConfigType type) {
-        super(Eco.getHandler().getConfigFactory().createConfig(contents, type));
+        super(Eco.get().createConfig(contents, type));
     }
 
     /**

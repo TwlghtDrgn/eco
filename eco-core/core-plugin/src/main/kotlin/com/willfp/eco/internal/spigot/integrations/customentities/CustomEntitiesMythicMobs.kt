@@ -5,6 +5,7 @@ import com.willfp.eco.core.integrations.customentities.CustomEntitiesIntegration
 import io.lumine.mythic.bukkit.MythicBukkit
 import org.bukkit.NamespacedKey
 
+
 class CustomEntitiesMythicMobs : CustomEntitiesIntegration {
     override fun registerAllEntities() {
         val mobManager = MythicBukkit.inst().mobManager

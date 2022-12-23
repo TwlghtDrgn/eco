@@ -31,3 +31,11 @@ var ItemStack.baseNBT: PersistentDataContainer
 /** @see Items.setBaseNBT */
 fun ItemStack.clearNBT() =
     Items.setBaseNBT(this, null)
+
+/** @see Items.toSNBT */
+fun ItemStack.toSNBT() =
+    Items.toSNBT(this)
+
+/** @see Items.isEmpty */
+val ItemStack?.isEmpty: Boolean
+    get() = Items.isEmpty(this)

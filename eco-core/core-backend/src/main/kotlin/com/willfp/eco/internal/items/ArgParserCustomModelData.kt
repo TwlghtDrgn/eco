@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import java.util.function.Predicate
 
-class ArgParserCustomModelData : LookupArgParser {
+object ArgParserCustomModelData : LookupArgParser {
     override fun parseArguments(args: Array<out String>, meta: ItemMeta): Predicate<ItemStack>? {
         var modelData: Int? = null
 
@@ -26,6 +26,10 @@ class ArgParserCustomModelData : LookupArgParser {
 
         return Predicate {
             val testMeta = it.itemMeta ?: return@Predicate false
+
+            if (!testMeta.hasCustomModelData()) {
+                return@Predicate false
+            }
 
             testMeta.customModelData == modelData
         }

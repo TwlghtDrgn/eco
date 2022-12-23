@@ -25,6 +25,7 @@ dependencies {
     implementation(project(path = ":eco-core:core-nms:v1_18_R1", configuration = "reobf"))
     implementation(project(path = ":eco-core:core-nms:v1_18_R2", configuration = "reobf"))
     implementation(project(path = ":eco-core:core-nms:v1_19_R1", configuration = "reobf"))
+    implementation(project(path = ":eco-core:core-nms:v1_19_R2", configuration = "reobf"))
 }
 
 allprojects {
@@ -78,8 +79,7 @@ allprojects {
         // LibsDisguises
         maven("https://repo.md-5.net/content/groups/public/")
 
-        // FabledSkyblock
-        maven("https://repo.songoda.com/repository/public/")
+        maven("https://repo.techscode.com/repository/maven-releases/")
     }
 
     dependencies {
@@ -161,6 +161,7 @@ allprojects {
             relocate("org.litote", "com.willfp.eco.libs.litote")
             relocate("org.reactivestreams", "com.willfp.eco.libs.reactivestreams")
             relocate("reactor.", "com.willfp.eco.libs.reactor.") // Dot in name to be safe
+            relocate("com.moandjiezana.toml", "com.willfp.eco.libs.toml")
 
             /*
             Kotlin and caffeine are not shaded so that they can be accessed directly by eco plugins.

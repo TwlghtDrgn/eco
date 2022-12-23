@@ -6,7 +6,7 @@ dependencies {
     compileOnly project(":eco-core:core-backend")
 
     // Libraries
-    implementation 'com.github.Redempt:Crunch:master-SNAPSHOT'
+    implementation 'com.github.WillFP:Crunch:1.1.3'
     implementation 'mysql:mysql-connector-java:8.0.25'
     implementation 'org.jetbrains.exposed:exposed-core:0.37.3'
     implementation 'org.jetbrains.exposed:exposed-dao:0.37.3'
@@ -16,6 +16,9 @@ dependencies {
     implementation 'org.javassist:javassist:3.28.0-GA'
     implementation 'org.mongodb:mongodb-driver-sync:4.6.0'
     implementation 'org.litote.kmongo:kmongo-coroutine:4.6.0'
+    implementation('com.moandjiezana.toml:toml4j:0.7.2') {
+        exclude group: 'com.google.code.gson', module: 'gson'
+    }
 
     // Included in spigot jar
     compileOnly 'com.google.code.gson:gson:2.8.8'
@@ -25,7 +28,6 @@ dependencies {
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT'
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.7-SNAPSHOT'
     compileOnly 'com.github.TechFortress:GriefPrevention:16.17.1'
-    compileOnly 'com.github.cryptomorin:kingdoms:1.12.3'
     compileOnly('com.github.TownyAdvanced:Towny:0.97.2.6') {
         exclude group: 'com.zaxxer', module: 'HikariCP'
     }
@@ -41,12 +43,14 @@ dependencies {
     compileOnly 'com.gmail.filoghost.holographicdisplays:holographicdisplays-api:2.4.0'
     compileOnly 'com.github.EssentialsX:Essentials:2.18.2'
     compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:1.8.3'
-    compileOnly 'com.songoda:skyblock:2.3.30'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
     compileOnly 'com.github.WhipDevelopment:CrashClaim:f9cd7d92eb'
     compileOnly 'com.wolfyscript.wolfyutilities:wolfyutilities:3.16.0.0'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.1.2'
     compileOnly 'com.github.Gypopo:EconomyShopGUI-API:1.1.0'
+    compileOnly 'com.github.N0RSKA:ScytherAPI:55a'
+    compileOnly 'com.ticxo.modelengine:api:R3.0.1'
+    compileOnly 'me.TechsCode:UltraEconomyAPI:1.0.0'
 
     // MythicMobs
     compileOnly 'io.lumine:Mythic:5.0.1'

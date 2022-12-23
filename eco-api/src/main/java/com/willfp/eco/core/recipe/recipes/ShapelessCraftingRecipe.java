@@ -3,7 +3,6 @@ package com.willfp.eco.core.recipe.recipes;
 import com.google.common.annotations.Beta;
 import com.willfp.eco.core.Eco;
 import com.willfp.eco.core.EcoPlugin;
-import com.willfp.eco.core.PluginDependent;
 import com.willfp.eco.core.items.TestableItem;
 import com.willfp.eco.core.recipe.Recipes;
 import com.willfp.eco.core.recipe.parts.EmptyTestableItem;
@@ -26,7 +25,12 @@ import java.util.Optional;
  * Shapeless crafting recipe.
  */
 @Beta
-public final class ShapelessCraftingRecipe extends PluginDependent<EcoPlugin> implements CraftingRecipe {
+public final class ShapelessCraftingRecipe implements CraftingRecipe {
+    /**
+     * The plugin.
+     */
+    private final EcoPlugin plugin;
+
     /**
      * Recipe parts.
      */
@@ -57,8 +61,7 @@ public final class ShapelessCraftingRecipe extends PluginDependent<EcoPlugin> im
                                     @NotNull final List<TestableItem> parts,
                                     @NotNull final ItemStack output,
                                     @Nullable final String permission) {
-        super(plugin);
-
+        this.plugin = plugin;
         this.parts = parts;
         this.key = plugin.getNamespacedKeyFactory().create(key);
         this.displayedKey = plugin.getNamespacedKeyFactory().create(key + "_displayed");
@@ -101,7 +104,7 @@ public final class ShapelessCraftingRecipe extends PluginDependent<EcoPlugin> im
             shapelessRecipe.addIngredient(part.getItem().getType());
         }
 
-        if (Eco.getHandler().getEcoPlugin().getConfigYml().getBool("displayed-recipes")) {
+        if (Eco.get().getEcoPlugin().getConfigYml().getBool("displayed-recipes")) {
             ShapelessRecipe displayedRecipe = new ShapelessRecipe(this.getDisplayedKey(), this.getOutput());
             for (TestableItem part : parts) {
                 List<TestableItem> items = new ArrayList<>();
@@ -122,7 +125,7 @@ public final class ShapelessCraftingRecipe extends PluginDependent<EcoPlugin> im
                         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                         assert lore != null;
                         lore.add("");
-                        String add = Eco.getHandler().getEcoPlugin().getLangYml().getFormattedString("multiple-in-craft");
+                        String add = Eco.get().getEcoPlugin().getLangYml().getFormattedString("multiple-in-craft");
                         add = add.replace("%amount%", String.valueOf(item.getAmount()));
                         lore.add(add);
                         meta.setLore(lore);
@@ -141,6 +144,15 @@ public final class ShapelessCraftingRecipe extends PluginDependent<EcoPlugin> im
         }
 
         Bukkit.getServer().addRecipe(shapelessRecipe);
+    }
+
+    /**
+     * Get the plugin.
+     *
+     * @return The plugin.
+     */
+    public EcoPlugin getPlugin() {
+        return plugin;
     }
 
     /**

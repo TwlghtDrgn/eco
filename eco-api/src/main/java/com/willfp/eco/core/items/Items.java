@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,6 +81,16 @@ public final class Items {
      * The handler.
      */
     private static final ItemsLookupHandler ITEMS_LOOKUP_HANDLER = new ItemsLookupHandler(Items::doParse);
+
+    /**
+     * Instance of EmptyTestableItem.
+     */
+    private static final TestableItem EMPTY_TESTABLE_ITEM = new EmptyTestableItem();
+
+    /**
+     * Friendly material names (without underscores, etc.)
+     */
+    private static final Map<String, Material> FRIENDLY_MATERIAL_NAMES = new HashMap<>();
 
     /**
      * Register a new custom item.
@@ -187,7 +198,7 @@ public final class Items {
     @NotNull
     public static TestableItem lookup(@NotNull final String key) {
         if (key.startsWith("{")) {
-            return Eco.getHandler().getSNBTHandler().createTestable(key);
+            return Eco.get().testableItemFromSNBT(key);
         }
 
         return ITEMS_LOOKUP_HANDLER.parseKey(key);
@@ -211,7 +222,7 @@ public final class Items {
             if (isWildcard) {
                 itemType = itemType.substring(1);
             }
-            Material material = Material.getMaterial(itemType.toUpperCase());
+            Material material = FRIENDLY_MATERIAL_NAMES.get(itemType.toLowerCase());
             if (material == null || material == Material.AIR) {
                 return new EmptyTestableItem();
             }
@@ -230,11 +241,11 @@ public final class Items {
 
                 String reformattedKey = keyID.replace("__", ":");
 
-                item = provider.provideForKey(reformattedKey);
-                if (item instanceof EmptyTestableItem || item == null) {
+                part = provider.provideForKey(reformattedKey);
+                if (part instanceof EmptyTestableItem || part == null) {
                     return new EmptyTestableItem();
                 }
-                registerCustomItem(namespacedKey, item);
+                registerCustomItem(namespacedKey, part);
             }
 
             /*
@@ -533,7 +544,7 @@ public final class Items {
      */
     @NotNull
     public static String toSNBT(@NotNull final ItemStack itemStack) {
-        return Eco.getHandler().getSNBTHandler().toSNBT(itemStack);
+        return Eco.get().toSNBT(itemStack);
     }
 
     /**
@@ -544,10 +555,41 @@ public final class Items {
      */
     @Nullable
     public static ItemStack fromSNBT(@NotNull final String snbt) {
-        return Eco.getHandler().getSNBTHandler().fromSNBT(snbt);
+        return Eco.get().fromSNBT(snbt);
+    }
+
+    /**
+     * Get if an item is empty.
+     *
+     * @param itemStack The item.
+     * @return If empty.
+     */
+    public static boolean isEmpty(@Nullable final ItemStack itemStack) {
+        return EMPTY_TESTABLE_ITEM.matches(itemStack);
     }
 
     private Items() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
+    static {
+        for (Material material : Material.values()) {
+            FRIENDLY_MATERIAL_NAMES.put(material.name().toLowerCase(), material);
+
+            String oneWord = material.name().toLowerCase().replace("_", "");
+            if (!FRIENDLY_MATERIAL_NAMES.containsKey(oneWord)) {
+                FRIENDLY_MATERIAL_NAMES.put(oneWord, material);
+            }
+
+            String plural = material.name().toLowerCase() + "s";
+            if (!FRIENDLY_MATERIAL_NAMES.containsKey(plural)) {
+                FRIENDLY_MATERIAL_NAMES.put(plural, material);
+            }
+
+            String oneWordPlural = oneWord + "s";
+            if (!FRIENDLY_MATERIAL_NAMES.containsKey(oneWordPlural)) {
+                FRIENDLY_MATERIAL_NAMES.put(oneWordPlural, material);
+            }
+        }
     }
 }

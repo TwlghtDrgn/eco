@@ -1,43 +1,58 @@
 package com.willfp.eco.internal.gui.menu
 
+import com.willfp.eco.core.gui.GUIComponent
 import com.willfp.eco.core.gui.menu.CloseHandler
 import com.willfp.eco.core.gui.menu.Menu
 import com.willfp.eco.core.gui.menu.MenuBuilder
+import com.willfp.eco.core.gui.menu.MenuEventHandler
+import com.willfp.eco.core.gui.menu.MenuLayer
 import com.willfp.eco.core.gui.menu.OpenHandler
-import com.willfp.eco.core.gui.slot.FillerMask
-import com.willfp.eco.core.gui.slot.FillerSlot
-import com.willfp.eco.core.gui.slot.Slot
-import com.willfp.eco.internal.gui.slot.EcoFillerSlot
-import com.willfp.eco.internal.gui.slot.EcoSlot
-import com.willfp.eco.util.ListUtils
 import com.willfp.eco.util.StringUtils
-import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
-class EcoMenuBuilder(private val rows: Int ) : MenuBuilder {
+class EcoMenuBuilder(
+    private val rows: Int,
+    private val columns: Int
+) : MenuBuilder {
     private var title = "Menu"
-    private var maskSlots: List<MutableList<Slot?>>
-    private val slots: List<MutableList<Slot?>> = ListUtils.create2DList(rows, 9)
-    private var onClose = CloseHandler { _, _ -> }
-    private var onOpen = OpenHandler { _, _ -> }
-    private var onRender: (Player, Menu) -> Unit = { _, _ -> }
+    private val components = mutableMapOf<MenuLayer, MutableMap<GUIPosition, MutableList<GUIComponent>>>()
+    private val onClose = mutableListOf<CloseHandler>()
+    private val onOpen = mutableListOf<OpenHandler>()
+    private val onRender = mutableListOf<(Player, Menu) -> Unit>()
+    private val menuEventHandlers = mutableListOf<MenuEventHandler<*>>()
+    private val onBuild = mutableListOf<(Menu) -> Unit>()
+    private var allowsChangingHeldItem = false
+
+    override fun getRows() = rows
+    override fun getColumns() = columns
 
     override fun setTitle(title: String): MenuBuilder {
         this.title = StringUtils.format(title)
         return this
     }
 
-    override fun setSlot(
-        row: Int,
-        column: Int,
-        slot: Slot
-    ): MenuBuilder {
-        require(!(row < 1 || row > rows)) { "Invalid row number!" }
-        require(!(column < 1 || column > 9)) { "Invalid column number!" }
-        slots[row - 1][column - 1] = slot
+    override fun getTitle(): String {
+        return title
+    }
+
+    override fun addComponent(layer: MenuLayer, row: Int, column: Int, component: GUIComponent): MenuBuilder {
+        require(row in 1..rows) { "Invalid row number!" }
+        require(column in 1..columns) { "Invalid column number!" }
+
+        val maxRows = 1 + rows - row
+        val maxColumns = 10 - column
+
+        component.init(maxRows, maxColumns)
+
+        require(column + component.columns - 1 <= columns) { "Component is too large to be placed here!" }
+        require(row + component.rows - 1 <= rows) { "Component is too large to be placed here!" }
+
+        val guiPosition = GUIPosition(row, column)
+        components.computeIfAbsent(layer) { mutableMapOf() }
+            .computeIfAbsent(guiPosition) { mutableListOf() } += component
+
         return this
     }
 
@@ -46,54 +61,87 @@ class EcoMenuBuilder(private val rows: Int ) : MenuBuilder {
         return this
     }
 
-    override fun setMask(mask: FillerMask): MenuBuilder {
-        maskSlots = mask.mask
-        return this
-    }
-
     override fun onClose(action: CloseHandler): MenuBuilder {
-        onClose = action
+        onClose += action
         return this
     }
 
     override fun onOpen(action: OpenHandler): MenuBuilder {
-        onOpen = action
+        onOpen += action
         return this
     }
 
     override fun onRender(action: BiConsumer<Player, Menu>): MenuBuilder {
-        onRender = { a, b -> action.accept(a, b) }
+        onRender += { a, b -> action.accept(a, b) }
+        return this
+    }
+
+    override fun onEvent(action: MenuEventHandler<*>): MenuBuilder {
+        menuEventHandlers += action
+        return this
+    }
+
+    override fun onBuild(action: Consumer<Menu>): MenuBuilder {
+        onBuild += { action.accept(it) }
+        return this
+    }
+
+    override fun allowChangingHeldItem(): MenuBuilder {
+        allowsChangingHeldItem = true
         return this
     }
 
     override fun build(): Menu {
-        val tempSlots: MutableList<MutableList<Slot?>> = ArrayList(maskSlots)
+        val layeredComponents = LayeredComponents()
 
-        for (i in slots.indices) {
-            for (j in slots[i].indices) {
-                val slot = slots[i][j] ?: continue
-                tempSlots[i][j] = slot
-            }
-        }
+        // 5 nested for loops? Shut up. Silence. Quiet.
+        for (layer in MenuLayer.values()) {
+            for (row in (1..rows)) {
+                for (column in (1..columns)) {
+                    for ((anchor, availableComponents) in components.computeIfAbsent(layer) { mutableMapOf() }) {
+                        for (component in availableComponents) {
+                            val rowOffset = 1 + row - anchor.row
+                            val columnOffset = 1 + column - anchor.column
 
-        val finalSlots = mutableListOf<MutableList<EcoSlot>>()
+                            if (rowOffset <= 0 || columnOffset <= 0) {
+                                continue
+                            }
 
-        for (row in tempSlots) {
-            val tempRow = mutableListOf<EcoSlot>()
-            for (slot in row) {
-                var tempSlot = slot
-                if (tempSlot is FillerSlot) {
-                    tempSlot = EcoFillerSlot(tempSlot.itemStack)
+                            if (rowOffset > component.rows || columnOffset > component.columns) {
+                                continue
+                            }
+
+                            val point = GUIPosition(row, column)
+
+                            layeredComponents.addOffsetComponent(
+                                layer,
+                                point,
+                                OffsetComponent(
+                                    component,
+                                    rowOffset,
+                                    columnOffset
+                                )
+                            )
+                        }
+                    }
                 }
-                tempRow.add((tempSlot ?: EcoFillerSlot(ItemStack(Material.AIR))) as EcoSlot)
             }
-            finalSlots.add(tempRow)
         }
 
-        return EcoMenu(rows, finalSlots, title, onClose, onRender, onOpen)
-    }
+        val menu = EcoMenu(
+            rows,
+            columns,
+            layeredComponents,
+            title,
+            onClose,
+            onRender,
+            onOpen,
+            menuEventHandlers,
+            allowsChangingHeldItem
+        )
 
-    init {
-        maskSlots = ListUtils.create2DList(rows, 9)
+        onBuild.forEach { it(menu) } // Run on build functions.
+
+        return menu
     }
 }

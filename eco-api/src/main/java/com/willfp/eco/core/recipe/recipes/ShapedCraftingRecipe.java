@@ -2,7 +2,6 @@ package com.willfp.eco.core.recipe.recipes;
 
 import com.willfp.eco.core.Eco;
 import com.willfp.eco.core.EcoPlugin;
-import com.willfp.eco.core.PluginDependent;
 import com.willfp.eco.core.items.TestableItem;
 import com.willfp.eco.core.recipe.Recipes;
 import com.willfp.eco.core.recipe.parts.EmptyTestableItem;
@@ -25,7 +24,12 @@ import java.util.List;
 /**
  * Shaped 3x3 crafting recipe.
  */
-public final class ShapedCraftingRecipe extends PluginDependent<EcoPlugin> implements CraftingRecipe {
+public final class ShapedCraftingRecipe implements CraftingRecipe {
+    /**
+     * The plugin.
+     */
+    private final EcoPlugin plugin;
+
     /**
      * Recipe parts.
      */
@@ -56,8 +60,7 @@ public final class ShapedCraftingRecipe extends PluginDependent<EcoPlugin> imple
                                  @NotNull final List<TestableItem> parts,
                                  @NotNull final ItemStack output,
                                  @Nullable final String permission) {
-        super(plugin);
-
+        this.plugin = plugin;
         this.parts = parts;
         this.key = plugin.getNamespacedKeyFactory().create(key);
         this.displayedKey = plugin.getNamespacedKeyFactory().create(key + "_displayed");
@@ -96,7 +99,7 @@ public final class ShapedCraftingRecipe extends PluginDependent<EcoPlugin> imple
             shapedRecipe.setIngredient(character, parts.get(i).getItem().getType());
         }
 
-        if (Eco.getHandler().getEcoPlugin().getConfigYml().getBool("displayed-recipes")) {
+        if (Eco.get().getEcoPlugin().getConfigYml().getBool("displayed-recipes")) {
             ShapedRecipe displayedRecipe = new ShapedRecipe(this.getDisplayedKey(), this.getOutput());
             displayedRecipe.shape("012", "345", "678");
             for (int i = 0; i < 9; i++) {
@@ -124,7 +127,7 @@ public final class ShapedCraftingRecipe extends PluginDependent<EcoPlugin> imple
                         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                         assert lore != null;
                         lore.add("");
-                        String add = Eco.getHandler().getEcoPlugin().getLangYml().getFormattedString("multiple-in-craft");
+                        String add = Eco.get().getEcoPlugin().getLangYml().getFormattedString("multiple-in-craft");
                         add = add.replace("%amount%", String.valueOf(item.getAmount()));
                         lore.add(add);
                         meta.setLore(lore);
@@ -143,6 +146,15 @@ public final class ShapedCraftingRecipe extends PluginDependent<EcoPlugin> imple
         }
 
         Bukkit.getServer().addRecipe(shapedRecipe);
+    }
+
+    /**
+     * Get the plugin.
+     *
+     * @return The plugin.
+     */
+    public EcoPlugin getPlugin() {
+        return plugin;
     }
 
     /**

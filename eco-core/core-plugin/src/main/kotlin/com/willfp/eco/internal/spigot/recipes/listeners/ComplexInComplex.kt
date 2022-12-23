@@ -7,11 +7,16 @@ import com.willfp.eco.internal.spigot.recipes.GenericCraftEvent
 import com.willfp.eco.internal.spigot.recipes.RecipeListener
 import org.bukkit.entity.Player
 
-class ComplexInComplex : RecipeListener {
+object ComplexInComplex : RecipeListener {
     override fun handle(event: GenericCraftEvent) {
         val recipe = event.recipe
 
         if (!EcoPlugin.getPluginNames().contains(recipe.key.namespace)) {
+            return
+        }
+
+        if (event.inventory.size == 5) {
+            event.deny()
             return
         }
 

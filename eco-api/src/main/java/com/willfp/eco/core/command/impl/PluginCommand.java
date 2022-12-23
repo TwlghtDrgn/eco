@@ -1,14 +1,18 @@
 package com.willfp.eco.core.command.impl;
 
+import com.willfp.eco.core.Eco;
 import com.willfp.eco.core.EcoPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,14 +42,60 @@ public abstract class PluginCommand extends HandledCommand implements CommandExe
 
     /**
      * Registers the command with the server,
-     * <p>
-     * Requires the command name to exist, defined in plugin.yml.
      */
     public final void register() {
         org.bukkit.command.PluginCommand command = Bukkit.getPluginCommand(this.getName());
-        assert command != null;
-        command.setExecutor(this);
-        command.setTabCompleter(this);
+        if (command != null) {
+            command.setExecutor(this);
+            command.setTabCompleter(this);
+
+            if (this.getDescription() != null) {
+                command.setDescription(this.getDescription());
+            }
+
+            List<String> aliases = new ArrayList<>(command.getAliases());
+            aliases.addAll(this.getAliases());
+            command.setAliases(aliases);
+        } else {
+            this.unregister();
+
+            CommandMap commandMap = getCommandMap();
+
+            commandMap.register(this.getPlugin().getName().toLowerCase(), new DelegatedBukkitCommand(this));
+        }
+
+        Eco.get().syncCommands();
+    }
+
+    /**
+     * Unregisters the command from the server.
+     */
+    public final void unregister() {
+        CommandMap commandMap = getCommandMap();
+
+        Eco.get().unregisterCommand(this);
+
+        Eco.get().syncCommands();
+    }
+
+    /**
+     * Get aliases. Leave null if this command is from plugin.yml.
+     *
+     * @return The aliases.
+     */
+    @NotNull
+    public List<String> getAliases() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Get description.
+     *
+     * @return The description.
+     */
+    @Nullable
+    public String getDescription() {
+        return null;
     }
 
     /**
@@ -92,5 +142,20 @@ public abstract class PluginCommand extends HandledCommand implements CommandExe
         }
 
         return this.handleTabCompletion(sender, args);
+    }
+
+    /**
+     * Get the internal server CommandMap.
+     *
+     * @return The CommandMap.
+     */
+    public static CommandMap getCommandMap() {
+        try {
+            Field field = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            field.setAccessible(true);
+            return (CommandMap) field.get(Bukkit.getServer());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new NullPointerException("Command map wasn't found!");
+        }
     }
 }

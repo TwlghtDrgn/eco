@@ -6,12 +6,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Builder for configs to create them programmatically.
  */
-public class BuildableConfig extends TransientConfig {
+public class BuildableConfig extends GenericConfig {
     /**
      * Create a new empty config builder.
      */
     public BuildableConfig() {
-        super();
+
     }
 
     /**

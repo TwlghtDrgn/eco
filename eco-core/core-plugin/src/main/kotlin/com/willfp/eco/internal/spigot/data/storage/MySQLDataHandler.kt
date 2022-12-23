@@ -3,12 +3,12 @@ package com.willfp.eco.internal.spigot.data.storage
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.willfp.eco.core.config.ConfigType
-import com.willfp.eco.core.config.TransientConfig
 import com.willfp.eco.core.config.interfaces.Config
+import com.willfp.eco.core.config.readConfig
 import com.willfp.eco.core.data.keys.PersistentDataKey
 import com.willfp.eco.core.data.keys.PersistentDataKeyType
 import com.willfp.eco.internal.spigot.EcoSpigotPlugin
-import com.willfp.eco.internal.spigot.data.EcoProfileHandler
+import com.willfp.eco.internal.spigot.data.ProfileHandler
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.dao.id.UUIDTable
@@ -35,8 +35,9 @@ Whatever. At least it works.
 @Suppress("UNCHECKED_CAST")
 class MySQLDataHandler(
     private val plugin: EcoSpigotPlugin,
-    private val handler: EcoProfileHandler
+    private val handler: ProfileHandler
 ) : DataHandler(HandlerType.MYSQL) {
+    private val database: Database
     private val table = UUIDTable("eco_data")
 
     private val rows = Caffeine.newBuilder()
@@ -60,14 +61,13 @@ class MySQLDataHandler(
                 plugin.configYml.getString("mysql.database")
         config.maximumPoolSize = plugin.configYml.getInt("mysql.connections")
 
-        Database.connect(HikariDataSource(config))
+        database = Database.connect(HikariDataSource(config))
 
-        transaction {
+        transaction(database) {
             SchemaUtils.create(table)
 
             table.apply {
                 registerColumn<String>("json_data", TextColumnType())
-                    .default("{}")
             }
 
             SchemaUtils.createMissingTablesAndColumns(table, withLogs = false)
@@ -83,6 +83,7 @@ class MySQLDataHandler(
             PersistentDataKeyType.STRING -> data.getStringOrNull(key.key.toString())
             PersistentDataKeyType.BOOLEAN -> data.getBoolOrNull(key.key.toString())
             PersistentDataKeyType.STRING_LIST -> data.getStringsOrNull(key.key.toString())
+            PersistentDataKeyType.CONFIG -> data.getSubsectionOrNull(key.key.toString())
             else -> null
         }
 
@@ -110,30 +111,32 @@ class MySQLDataHandler(
     }
 
     private fun getData(uuid: UUID): Config {
-        val plaintext = transaction {
+        val plaintext = transaction(database) {
             val row = rows.get(uuid) {
                 val row = table.select { table.id eq uuid }.limit(1).singleOrNull()
 
                 if (row != null) {
                     row
                 } else {
-                    transaction {
-                        table.insert { it[id] = uuid }
+                    transaction(database) {
+                        table.insert {
+                            it[id] = uuid
+                            it[dataColumn] = "{}"
+                        }
                     }
                     table.select { table.id eq uuid }.limit(1).singleOrNull()
                 }
             }
 
-            row[dataColumn]
+            row.getOrNull(dataColumn) ?: "{}"
         }
 
-
-        return TransientConfig(plaintext, ConfigType.JSON)
+        return readConfig(plaintext, ConfigType.JSON)
     }
 
     private fun setData(uuid: UUID, config: Config) {
         executor.submit {
-            transaction {
+            transaction(database) {
                 table.update({ table.id eq uuid }) {
                     it[dataColumn] = config.toPlaintext()
                 }
@@ -142,7 +145,7 @@ class MySQLDataHandler(
     }
 
     override fun initialize() {
-        transaction {
+        transaction(database) {
             SchemaUtils.createMissingTablesAndColumns(table, withLogs = false)
         }
     }

@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
 
+
 class CustomItemsMythicMobs(
     private val plugin: EcoPlugin
 ) : CustomItemsIntegration, Listener {
@@ -52,3 +53,4 @@ class CustomItemsMythicMobs(
         }
     }
 }
+

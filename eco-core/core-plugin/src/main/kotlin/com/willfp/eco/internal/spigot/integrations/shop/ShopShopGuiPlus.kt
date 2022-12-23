@@ -3,12 +3,15 @@ package com.willfp.eco.internal.spigot.integrations.shop
 import com.willfp.eco.core.integrations.shop.ShopIntegration
 import com.willfp.eco.core.integrations.shop.ShopSellEvent
 import com.willfp.eco.core.items.Items
+import com.willfp.eco.core.price.Price
+import com.willfp.eco.core.price.impl.PriceEconomy
 import net.brcdev.shopgui.ShopGuiPlusApi
 import net.brcdev.shopgui.event.ShopPreTransactionEvent
 import net.brcdev.shopgui.provider.item.ItemProvider
 import net.brcdev.shopgui.shop.ShopManager
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
@@ -20,6 +23,18 @@ class ShopShopGuiPlus : ShopIntegration {
 
     override fun getSellEventAdapter(): Listener {
         return ShopGuiPlusSellEventListeners
+    }
+
+    override fun getUnitValue(itemStack: ItemStack, player: Player): Price {
+        return PriceEconomy(
+            ShopGuiPlusApi.getItemStackPriceSell(player, itemStack.clone().apply {
+                amount = 1
+            })
+        )
+    }
+
+    override fun isSellable(itemStack: ItemStack, player: Player): Boolean {
+        return ShopGuiPlusApi.getItemStackPriceSell(player, itemStack) > 0
     }
 
     class EcoShopGuiPlusProvider : ItemProvider("eco") {
@@ -50,9 +65,9 @@ class ShopShopGuiPlus : ShopIntegration {
                 return
             }
 
-            val ecoEvent = ShopSellEvent(event.player, event.price, event.shopItem.item)
+            val ecoEvent = ShopSellEvent(event.player, PriceEconomy(event.price), event.shopItem.item)
             Bukkit.getPluginManager().callEvent(ecoEvent)
-            event.price = ecoEvent.price
+            event.price = ecoEvent.value.getValue(event.player) * ecoEvent.multiplier
         }
     }
 

@@ -52,9 +52,14 @@ public final class PlaceholderManager {
             .build(key -> key.entry.getValue(key.player));
 
     /**
+     * The default PlaceholderAPI pattern; brought in for compatibility.
+     */
+    private static final Pattern PATTERN = Pattern.compile("[%]([^% ]+)[%]");
+
+    /**
      * Empty injectable object.
      */
-    private static final PlaceholderInjectable EMPTY_INJECTABLE = new PlaceholderInjectable() {
+    public static final PlaceholderInjectable EMPTY_INJECTABLE = new PlaceholderInjectable() {
         @Override
         public void clearInjectedPlaceholders() {
             // Do nothing.
@@ -66,11 +71,6 @@ public final class PlaceholderManager {
             return Collections.emptyList();
         }
     };
-
-    /**
-     * The default PlaceholderAPI pattern; brought in for compatibility.
-     */
-    private static final Pattern PATTERN = Pattern.compile("[%]([^%]+)[%]");
 
     /**
      * Register a new placeholder integration.
@@ -92,7 +92,7 @@ public final class PlaceholderManager {
             throw new IllegalArgumentException("Static placeholders cannot be registered!");
         }
 
-        EcoPlugin plugin = placeholder.getPlugin() == null ? Eco.getHandler().getEcoPlugin() : placeholder.getPlugin();
+        EcoPlugin plugin = placeholder.getPlugin() == null ? Eco.get().getEcoPlugin() : placeholder.getPlugin();
         Map<String, Placeholder> pluginPlaceholders = REGISTERED_PLACEHOLDERS
                 .getOrDefault(plugin, new HashMap<>());
         pluginPlaceholders.put(placeholder.getIdentifier(), placeholder);
@@ -136,11 +136,11 @@ public final class PlaceholderManager {
     public static String getResult(@Nullable final Player player,
                                    @NotNull final String identifier,
                                    @Nullable final EcoPlugin plugin) {
-        EcoPlugin owner = plugin == null ? Eco.getHandler().getEcoPlugin() : plugin;
+        EcoPlugin owner = plugin == null ? Eco.get().getEcoPlugin() : plugin;
         Placeholder placeholder = REGISTERED_PLACEHOLDERS.getOrDefault(owner, new HashMap<>()).get(identifier.toLowerCase());
 
         if (placeholder == null && plugin != null) {
-            Placeholder alternate = REGISTERED_PLACEHOLDERS.getOrDefault(Eco.getHandler().getEcoPlugin(), new HashMap<>())
+            Placeholder alternate = REGISTERED_PLACEHOLDERS.getOrDefault(Eco.get().getEcoPlugin(), new HashMap<>())
                     .get(identifier.toLowerCase());
             if (alternate != null) {
                 placeholder = alternate;
