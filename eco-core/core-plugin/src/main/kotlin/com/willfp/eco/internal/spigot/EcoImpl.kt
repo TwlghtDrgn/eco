@@ -4,6 +4,8 @@ import com.willfp.eco.core.Eco
 import com.willfp.eco.core.EcoPlugin
 import com.willfp.eco.core.PluginLike
 import com.willfp.eco.core.PluginProps
+import com.willfp.eco.core.command.CommandBase
+import com.willfp.eco.core.command.PluginCommandBase
 import com.willfp.eco.core.command.impl.PluginCommand
 import com.willfp.eco.core.config.ConfigType
 import com.willfp.eco.core.config.interfaces.Config
@@ -14,11 +16,9 @@ import com.willfp.eco.core.gui.slot.functional.SlotProvider
 import com.willfp.eco.core.items.Items
 import com.willfp.eco.core.math.MathContext
 import com.willfp.eco.internal.EcoPropsParser
-import com.willfp.eco.internal.config.EcoConfigHandler
-import com.willfp.eco.internal.config.EcoConfigSection
-import com.willfp.eco.internal.config.EcoLoadableConfig
-import com.willfp.eco.internal.config.EcoUpdatableConfig
-import com.willfp.eco.internal.config.toMap
+import com.willfp.eco.internal.command.EcoPluginCommand
+import com.willfp.eco.internal.command.EcoSubcommand
+import com.willfp.eco.internal.config.*
 import com.willfp.eco.internal.drops.EcoDropQueue
 import com.willfp.eco.internal.drops.EcoFastCollatedDropQueue
 import com.willfp.eco.internal.events.EcoEventManager
@@ -43,6 +43,7 @@ import com.willfp.eco.internal.spigot.data.ProfileHandler
 import com.willfp.eco.internal.spigot.data.storage.HandlerType
 import com.willfp.eco.internal.spigot.integrations.bstats.MetricHandler
 import com.willfp.eco.internal.spigot.math.evaluateExpression
+import com.willfp.eco.internal.spigot.proxy.BukkitCommandsProxy
 import com.willfp.eco.internal.spigot.proxy.CommonsInitializerProxy
 import com.willfp.eco.internal.spigot.proxy.DummyEntityFactoryProxy
 import com.willfp.eco.internal.spigot.proxy.EntityControllerFactoryProxy
@@ -51,11 +52,9 @@ import com.willfp.eco.internal.spigot.proxy.FastItemStackFactoryProxy
 import com.willfp.eco.internal.spigot.proxy.MiniMessageTranslatorProxy
 import com.willfp.eco.internal.spigot.proxy.SNBTConverterProxy
 import com.willfp.eco.internal.spigot.proxy.SkullProxy
-import com.willfp.eco.internal.spigot.proxy.BukkitCommandsProxy
 import com.willfp.eco.internal.spigot.proxy.TPSProxy
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
-import org.bukkit.command.Command
 import org.bukkit.command.CommandMap
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Entity
@@ -65,7 +64,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataContainer
 import java.net.URLClassLoader
-import java.util.UUID
+import java.util.*
 
 private val loadedEcoPlugins = mutableMapOf<String, EcoPlugin>()
 
@@ -169,8 +168,37 @@ class EcoImpl : EcoSpigotPlugin(), Eco {
         return config
     }
 
-    override fun createDropQueue(player: Player) = if (this.configYml.getBool("use-fast-collated-drops"))
-        EcoFastCollatedDropQueue(player) else EcoDropQueue(player)
+    override fun createPluginCommand(
+        parentDelegate: CommandBase,
+        plugin: EcoPlugin,
+        name: String,
+        permission: String,
+        playersOnly: Boolean
+    ) = EcoPluginCommand(
+        parentDelegate,
+        plugin,
+        name,
+        permission,
+        playersOnly
+    )
+
+    override fun createSubcommand(
+        parentDelegate: CommandBase,
+        plugin: EcoPlugin,
+        name: String,
+        permission: String,
+        playersOnly: Boolean
+    ) = EcoSubcommand(
+        parentDelegate,
+        plugin,
+        name,
+        permission,
+        playersOnly
+    )
+
+    override fun createDropQueue(player: Player) =
+        if (this.configYml.getBool("use-fast-collated-drops"))
+            EcoFastCollatedDropQueue(player) else EcoDropQueue(player)
 
     override fun getRegisteredPersistentDataKeys() =
         KeyRegistry.getRegisteredKeys()
@@ -290,9 +318,6 @@ class EcoImpl : EcoSpigotPlugin(), Eco {
     override fun syncCommands() =
         this.getProxy(BukkitCommandsProxy::class.java).syncCommands()
 
-    override fun getCommandMap(): CommandMap =
-        this.getProxy(BukkitCommandsProxy::class.java).getCommandMap()
-
-    override fun unregisterCommand(command: PluginCommand) =
+    override fun unregisterCommand(command: PluginCommandBase) =
         this.getProxy(BukkitCommandsProxy::class.java).unregisterCommand(command)
 }

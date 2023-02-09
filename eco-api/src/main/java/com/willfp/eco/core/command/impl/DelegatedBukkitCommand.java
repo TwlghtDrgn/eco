@@ -6,13 +6,15 @@ import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 /**
  * Delegates a bukkit command to an eco command (for registrations).
+ *
+ * @deprecated Internal command implementations have been removed from the API.
  */
+@Deprecated(forRemoval = true, since = "6.49.0")
 public final class DelegatedBukkitCommand extends Command implements TabCompleter, PluginIdentifiableCommand {
     /**
      * The delegate command.
@@ -34,7 +36,7 @@ public final class DelegatedBukkitCommand extends Command implements TabComplete
     public boolean execute(@NotNull final CommandSender commandSender,
                            @NotNull final String label,
                            @NotNull final String[] args) {
-        return delegate.onCommand(commandSender, this, label, args);
+        return false;
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class DelegatedBukkitCommand extends Command implements TabComplete
                                       @NotNull final Command command,
                                       @NotNull final String label,
                                       @NotNull final String[] args) {
-        return delegate.onTabComplete(commandSender, command, label, args);
+        return List.of();
     }
 
     @NotNull
@@ -51,9 +53,8 @@ public final class DelegatedBukkitCommand extends Command implements TabComplete
         return this.delegate.getPlugin();
     }
 
-    @Nullable
     @Override
-    public String getPermission() {
+    public @NotNull String getPermission() {
         return this.delegate.getPermission();
     }
 

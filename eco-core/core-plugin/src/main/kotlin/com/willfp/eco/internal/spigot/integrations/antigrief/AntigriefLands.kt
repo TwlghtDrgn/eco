@@ -2,9 +2,10 @@ package com.willfp.eco.internal.spigot.integrations.antigrief
 
 import com.willfp.eco.core.EcoPlugin
 import com.willfp.eco.core.integrations.antigrief.AntigriefIntegration
-import me.angeschossen.lands.api.flags.Flags
-import me.angeschossen.lands.api.integration.LandsIntegration
+import me.angeschossen.lands.api.LandsIntegration
+import me.angeschossen.lands.api.flags.type.Flags
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.Animals
 import org.bukkit.entity.LivingEntity
@@ -12,29 +13,30 @@ import org.bukkit.entity.Monster
 import org.bukkit.entity.Player
 
 class AntigriefLands(private val plugin: EcoPlugin) : AntigriefIntegration {
-    private val landsIntegration = LandsIntegration(this.plugin)
+    private val landsIntegration = LandsIntegration.of(this.plugin)
     override fun canBreakBlock(
         player: Player,
         block: Block
     ): Boolean {
-        val area = landsIntegration.getAreaByLoc(block.location) ?: return true
-        return area.hasFlag(player, Flags.BLOCK_BREAK, false)
+        val area = landsIntegration.getArea(block.location) ?: return true
+        return area.hasRoleFlag(player, Flags.BLOCK_BREAK, block.type, false)
     }
 
     override fun canCreateExplosion(
         player: Player,
         location: Location
     ): Boolean {
-        val area = landsIntegration.getAreaByLoc(location) ?: return true
-        return area.hasFlag(player, Flags.ATTACK_PLAYER, false) && area.hasFlag(player, Flags.ATTACK_ANIMAL, false)
+        val area = landsIntegration.getArea(location) ?: return true
+        return  area.hasRoleFlag(player, Flags.ATTACK_PLAYER, Material.AIR, false)
+                && area.hasRoleFlag(player, Flags.ATTACK_ANIMAL, Material.AIR, false)
     }
 
     override fun canPlaceBlock(
         player: Player,
         block: Block
     ): Boolean {
-        val area = landsIntegration.getAreaByLoc(block.location) ?: return true
-        return area.hasFlag(player, Flags.BLOCK_PLACE, false)
+        val area = landsIntegration.getArea(block.location) ?: return true
+        return area.hasRoleFlag(player, Flags.BLOCK_PLACE, Material.AIR, false)
     }
 
     override fun canInjure(
@@ -42,19 +44,19 @@ class AntigriefLands(private val plugin: EcoPlugin) : AntigriefIntegration {
         victim: LivingEntity
     ): Boolean {
 
-        val area = landsIntegration.getAreaByLoc(victim.location) ?: return true
+        val area = landsIntegration.getArea(victim.location) ?: return true
 
         return when(victim) {
-            is Player -> area.hasFlag(player, Flags.ATTACK_PLAYER, false)
-            is Monster -> area.hasFlag(player, Flags.ATTACK_MONSTER, false)
-            is Animals -> area.hasFlag(player, Flags.ATTACK_MONSTER, false)
+            is Player -> area.hasRoleFlag(player, Flags.ATTACK_PLAYER, Material.AIR, false)
+            is Monster -> area.hasRoleFlag(player, Flags.ATTACK_MONSTER, Material.AIR, false)
+            is Animals -> area.hasRoleFlag(player, Flags.ATTACK_ANIMAL, Material.AIR, false)
             else -> area.isTrusted(player.uniqueId)
         }
     }
 
     override fun canPickupItem(player: Player, location: Location): Boolean {
-        val area = landsIntegration.getAreaByLoc(location) ?: return true
-        return area.hasFlag(player, Flags.ITEM_PICKUP, false)
+        val area = landsIntegration.getArea(location) ?: return true
+        return area.hasRoleFlag(player, Flags.ITEM_PICKUP, Material.AIR, false)
     }
 
     override fun getPluginName(): String {

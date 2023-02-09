@@ -1,5 +1,7 @@
 package com.willfp.eco.core;
 
+import com.willfp.eco.core.command.CommandBase;
+import com.willfp.eco.core.command.PluginCommandBase;
 import com.willfp.eco.core.command.impl.PluginCommand;
 import com.willfp.eco.core.config.ConfigType;
 import com.willfp.eco.core.config.interfaces.Config;
@@ -30,7 +32,6 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.command.CommandMap;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -49,18 +50,18 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
- * Holds the instance of eco for bridging between the frontend
- * and backend.
+ * Holds the instance of eco for bridging between the frontend and backend.
  * <p>
  * <strong>Do not use this in your plugins!</strong> It can and will contain
- * breaking changes between minor versions and even patches, and you will create
- * compatibility issues by. All parts of this have been abstracted
- * into logically named API components that you can use.
+ * breaking changes between minor versions and even patches, and you will create compatibility
+ * issues by. All parts of this have been abstracted into logically named API components that you
+ * can use.
  *
  * @see Eco#get()
  */
 @ApiStatus.Internal
 public interface Eco {
+
     /**
      * Create a scheduler.
      *
@@ -156,6 +157,40 @@ public interface Eco {
      */
     @NotNull
     EcoPlugin getEcoPlugin();
+
+    /**
+     * Create PluginCommandBase implementation of {@link PluginCommand}.
+     *
+     * @param parentDelegate the enclosing class of this implementation.
+     * @param plugin         the plugin.
+     * @param name           the name of the command.
+     * @param permission     the permission of the command.
+     * @param playersOnly    if the command is players only.
+     * @return The PluginCommandBase implementation
+     */
+    @NotNull
+    PluginCommandBase createPluginCommand(@NotNull CommandBase parentDelegate,
+                                          @NotNull EcoPlugin plugin,
+                                          @NotNull String name,
+                                          @NotNull String permission,
+                                          boolean playersOnly);
+
+    /**
+     * Create CommandBase implementation of {@link com.willfp.eco.core.command.impl.Subcommand Subcommand}.
+     *
+     * @param parentDelegate the enclosing class of this implementation.
+     * @param plugin         the plugin.
+     * @param name           the name of the command.
+     * @param permission     the permission of the command.
+     * @param playersOnly    if the command is players only.
+     * @return The CommandBase implementation
+     */
+    @NotNull
+    CommandBase createSubcommand(@NotNull CommandBase parentDelegate,
+                                 @NotNull EcoPlugin plugin,
+                                 @NotNull String name,
+                                 @NotNull String permission,
+                                 boolean playersOnly);
 
     /**
      * Updatable config.
@@ -378,9 +413,8 @@ public interface Eco {
     /**
      * Create a {@link NamespacedKey} quickly
      * <p>
-     * Bypasses the constructor, allowing for the creation of invalid keys,
-     * therefore this is considered unsafe and should only be called after
-     * the key has been confirmed to be valid.
+     * Bypasses the constructor, allowing for the creation of invalid keys, therefore this is
+     * considered unsafe and should only be called after the key has been confirmed to be valid.
      *
      * @param namespace The namespace.
      * @param key       The key.
@@ -513,22 +547,14 @@ public interface Eco {
     void syncCommands();
 
     /**
-     * Get the command map.
-     *
-     * @return The command map.
-     */
-    @NotNull CommandMap getCommandMap();
-
-    /**
      * Unregister a command.
      *
      * @param command The command.
      */
-    void unregisterCommand(@NotNull final PluginCommand command);
+    void unregisterCommand(@NotNull final PluginCommandBase command);
 
     /**
-     * Get the instance of eco; the bridge between the api frontend
-     * and the implementation backend.
+     * Get the instance of eco; the bridge between the api frontend and the implementation backend.
      *
      * @return The instance of eco.
      */
@@ -542,6 +568,7 @@ public interface Eco {
      */
     @ApiStatus.Internal
     final class Instance {
+
         /**
          * Instance of eco.
          */
