@@ -1,6 +1,5 @@
 package com.willfp.eco.internal.spigot
 
-import com.willfp.eco.core.AbstractPacketAdapter
 import com.willfp.eco.core.Eco
 import com.willfp.eco.core.EcoPlugin
 import com.willfp.eco.core.Prerequisite
@@ -17,6 +16,7 @@ import com.willfp.eco.core.integrations.mcmmo.McmmoManager
 import com.willfp.eco.core.integrations.placeholder.PlaceholderManager
 import com.willfp.eco.core.integrations.shop.ShopManager
 import com.willfp.eco.core.items.Items
+import com.willfp.eco.core.packet.PacketListener
 import com.willfp.eco.core.particle.Particles
 import com.willfp.eco.core.price.Prices
 import com.willfp.eco.internal.entities.EntityArgParserAdult
@@ -57,14 +57,6 @@ import com.willfp.eco.internal.spigot.data.DataYml
 import com.willfp.eco.internal.spigot.data.PlayerBlockListener
 import com.willfp.eco.internal.spigot.data.ProfileHandler
 import com.willfp.eco.internal.spigot.data.storage.ProfileSaver
-import com.willfp.eco.internal.spigot.display.PacketAutoRecipe
-import com.willfp.eco.internal.spigot.display.PacketChat
-import com.willfp.eco.internal.spigot.display.PacketHeldItemSlot
-import com.willfp.eco.internal.spigot.display.PacketOpenWindowMerchant
-import com.willfp.eco.internal.spigot.display.PacketSetCreativeSlot
-import com.willfp.eco.internal.spigot.display.PacketSetSlot
-import com.willfp.eco.internal.spigot.display.PacketWindowItems
-import com.willfp.eco.internal.spigot.display.frame.clearFrames
 import com.willfp.eco.internal.spigot.drops.CollatedRunnable
 import com.willfp.eco.internal.spigot.eventlisteners.EntityDeathByEntityListeners
 import com.willfp.eco.internal.spigot.eventlisteners.NaturalExpGainListenersPaper
@@ -122,6 +114,7 @@ import com.willfp.eco.internal.spigot.integrations.shop.ShopEconomyShopGUI
 import com.willfp.eco.internal.spigot.integrations.shop.ShopShopGuiPlus
 import com.willfp.eco.internal.spigot.integrations.shop.ShopZShop
 import com.willfp.eco.internal.spigot.proxy.FastItemStackFactoryProxy
+import com.willfp.eco.internal.spigot.proxy.PacketHandlerProxy
 import com.willfp.eco.internal.spigot.recipes.CraftingRecipeListener
 import com.willfp.eco.internal.spigot.recipes.StackedRecipeListener
 import com.willfp.eco.internal.spigot.recipes.listeners.ComplexInComplex
@@ -248,7 +241,7 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
 
         ProfileSaver(this, profileHandler)
         this.scheduler.runTimer(
-            { clearFrames() },
+            { getProxy(PacketHandlerProxy::class.java).clearDisplayFrames() },
             this.configYml.getInt("display-frame-ttl").toLong(),
             this.configYml.getInt("display-frame-ttl").toLong()
         )
@@ -358,18 +351,6 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
         )
     }
 
-    override fun loadPacketAdapters(): List<AbstractPacketAdapter> {
-        return listOf(
-            PacketAutoRecipe(this),
-            PacketChat(this),
-            PacketSetCreativeSlot(this),
-            PacketSetSlot(this),
-            PacketWindowItems(this),
-            PacketHeldItemSlot(this),
-            PacketOpenWindowMerchant(this)
-        )
-    }
-
     override fun loadListeners(): List<Listener> {
         val listeners = mutableListOf(
             ArmorListener(),
@@ -393,5 +374,9 @@ abstract class EcoSpigotPlugin : EcoPlugin() {
         }
 
         return listeners
+    }
+
+    override fun loadPacketListeners(): List<PacketListener> {
+        return this.getProxy(PacketHandlerProxy::class.java).getPacketListeners(this)
     }
 }

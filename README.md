@@ -31,6 +31,7 @@ eco comes packed with all the tools you need in your plugins:
 - Yaml/JSON/TOML config system
 - Persistent data storage API with Yaml/MySQL/MongoDB support
 - Packet item display system
+- Lightweight event loop based packet API
 - Entity AI API with near-1:1 NMS mappings
 - More events
 - Extension API, essentially plugins for plugins
@@ -52,7 +53,6 @@ eco comes packed with all the tools you need in your plugins:
 - And much more
 
 # For server owners
-- Requires ProtocolLib to be installed: get the latest version [here](https://www.spigotmc.org/resources/protocollib.1997/)
 - Supports 1.17+
 
 ## Downloads

@@ -5,9 +5,8 @@ api-version: 1.17
 authors: [ Auxilor ]
 website: willfp.com
 load: STARTUP
-depend:
-  - ProtocolLib
 softdepend:
+  - ProtocolLib
   - WorldGuard
   - GriefPrevention
   - Towny
@@ -51,3 +50,4 @@ softdepend:
   - Scyther
   - ModelEngine
   - PvPManager
+  - DeluxeMenus

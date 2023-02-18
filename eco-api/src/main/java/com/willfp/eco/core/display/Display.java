@@ -1,6 +1,7 @@
 package com.willfp.eco.core.display;
 
 import com.willfp.eco.core.fast.FastItemStack;
+import com.willfp.eco.core.integrations.guidetection.GUIDetectionManager;
 import com.willfp.eco.util.NamespacedKeyUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -18,6 +19,9 @@ import java.util.TreeMap;
 
 /**
  * Utility class to manage client-side item display.
+ * <p>
+ * Packet display is not done on the main thread, so make sure
+ * all your modules are thread-safe.
  */
 public final class Display {
     /**
@@ -71,7 +75,7 @@ public final class Display {
         ItemStack original = itemStack.clone();
         Inventory inventory = player == null ? null : player.getOpenInventory().getTopInventory();
         boolean inInventory = inventory != null && inventory.contains(original);
-        boolean inGui = inventory != null && inventory.getHolder() == null;
+        boolean inGui = player != null && GUIDetectionManager.hasGUIOpen(player);
 
         DisplayProperties properties = new DisplayProperties(
                 inInventory,
