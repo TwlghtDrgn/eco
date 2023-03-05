@@ -713,7 +713,9 @@ public abstract class EcoPlugin extends JavaPlugin implements PluginLike {
      *
      * @return A list of all listeners.
      */
-    protected abstract List<Listener> loadListeners();
+    protected List<Listener> loadListeners() {
+        return new ArrayList<>();
+    }
 
     /**
      * Useful for custom LangYml implementations.
@@ -862,6 +864,7 @@ public abstract class EcoPlugin extends JavaPlugin implements PluginLike {
      * @param pluginName The name.
      * @return The plugin.
      */
+    @Nullable
     public static EcoPlugin getPlugin(@NotNull final String pluginName) {
         return Eco.get().getPluginByName(pluginName);
     }
@@ -871,6 +874,7 @@ public abstract class EcoPlugin extends JavaPlugin implements PluginLike {
      *
      * @return The set of names.
      */
+    @NotNull
     public static Set<String> getPluginNames() {
         return new HashSet<>(Eco.get().getLoadedPlugins());
     }
